@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, UUID, String, Text, ForeignKey, Integer
+from sqlalchemy import Column, UUID, String, Text, ForeignKey, Integer, DateTime, func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -21,6 +21,7 @@ class Tasks(Base):
     name = Column(String(100), nullable=False, unique=False)
     description = Column(Text, nullable=True, unique=False)
     state = Column(String(10), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
 
 
