@@ -11,7 +11,7 @@ class TaskService:
         task = Tasks(
             id=uuid.uuid4(),
             user_id=current_user_id,
-            title=task_title,
+            name=task_title,
             created_at=datetime.datetime.now()
         )
         session.add(task)
@@ -20,3 +20,13 @@ class TaskService:
     @staticmethod
     def get_the_last_task(current_user_id: int) -> Tasks:
         return session.query(Tasks).filter_by(user_id=current_user_id).order_by(Tasks.created_at.desc()).first()
+
+    @staticmethod
+    def get_all_tasks(current_user_id: int) -> list[Tasks]:
+        return session.query(Tasks).filter_by(user_id=current_user_id).all()
+
+    @staticmethod
+    def get_task_by_id(task_id: uuid) -> Tasks:
+        return session.query(Tasks).filter_by(id=task_id).first()
+
+
