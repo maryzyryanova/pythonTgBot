@@ -1,7 +1,7 @@
-import uuid
+from uuid import UUID
 
 from pyrogram import Client
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from fsm import RegisterFSM, TaskCreationFSM
 from models import Tasks
@@ -112,3 +112,60 @@ def handle_task_description(
     current_user_state = task_creation_fsm.state
     UserStatesService.update_user_state(current_user_id, current_user_state)
     message.reply_text("Task created successfully!")
+
+
+def tasks_list(
+        client: Client,
+        message: Message
+):
+    current_user_id: int = message.from_user.id
+    tasks: list[Tasks] = TaskService.get_all_tasks(current_user_id)
+    task_buttons: list = []
+    for task in tasks:
+        task_buttons.append([InlineKeyboardButton(task.name, callback_data=f"view_task_{task.id}")])
+    tasks_markup: InlineKeyboardMarkup = InlineKeyboardMarkup(task_buttons)
+    if tasks_markup:
+        message.reply_text("Your tasks:", reply_markup=tasks_markup)
+    else:
+        message.reply_text("You don't have any tasks yet.")
+
+
+def view_task(
+    client: Client,
+    callback_query: CallbackQuery
+):
+    task_id: str = callback_query.data.split("_")[2]
+
+    try:
+        task_id: UUID = UUID(task_id)
+        task: Tasks = TaskService.get_task_by_id(task_id)
+    except ValueError:
+        callback_query.answer("Invalid task ID format!", show_alert=True)
+        return
+
+    if task:
+        message_text = f"{task.name}\n{task.description}"
+        commands_markup = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("Mark as Completed", callback_data=f"complete_task_{task_id}")],
+                [InlineKeyboardButton("Delete Task", callback_data=f"delete_task_{task_id}")],
+                [InlineKeyboardButton("Back to Task List", callback_data="tasks_list")]
+            ]
+        )
+        callback_query.message.edit_text(message_text, reply_markup=commands_markup)
+    else:
+        callback_query.answer("Task not found!", show_alert=True)
+
+
+def delete_task(
+    client: Client,
+    message: Message
+):
+    ...
+
+
+def mark_task_as_completed(
+    client: Client,
+    message: Message
+):
+    ...
