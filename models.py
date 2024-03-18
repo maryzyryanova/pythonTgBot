@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, UUID, String, Text, ForeignKey, Integer, DateTime, func
+from sqlalchemy import Column, UUID, String, Text, ForeignKey, Integer, DateTime, func, Boolean
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -20,9 +20,9 @@ class Tasks(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True)
     name = Column(String(100), nullable=False, unique=False)
     description = Column(Text, nullable=True, unique=False)
-    state = Column(String(10), nullable=False)
+    is_done = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
 
 
 class UsersStates(Base):
