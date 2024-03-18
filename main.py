@@ -2,15 +2,16 @@ import os
 
 from dotenv import load_dotenv
 from pyrogram import Client, filters
-from pyrogram.handlers import MessageHandler
-from containers import Container
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from handlers import (
     start_command,
     enter_name,
     enter_username,
     create_task,
     handle_task_title,
-    handle_task_description
+    handle_task_description,
+    tasks_list,
+    view_task
 )
 from services.user_states_service import UserStatesService
 
@@ -23,10 +24,6 @@ app: Client = Client(
     bot_token=os.getenv('BOT_TOKEN'),
 )
 
-container = Container()
-container.init_resources()
-container.wire(modules=[__name__])
-
 app.add_handler(
     MessageHandler(
         start_command,
@@ -34,10 +31,26 @@ app.add_handler(
     )
 )
 
+
 app.add_handler(
     MessageHandler(
         create_task,
         filters.command('create_task')
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        tasks_list,
+        filters.command('tasks_list')
+    )
+)
+
+
+app.add_handler(
+    CallbackQueryHandler(
+        view_task,
+        filters.regex(r'^view_task_\d+')
     )
 )
 
