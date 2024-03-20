@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  db:
+    build: ./db/
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/data/postgres
+    volumes:
+      - db-data:/data/postgres
+  bot:
+    build: ./
+    env_file: .env
+volumes:
+  db-data:
