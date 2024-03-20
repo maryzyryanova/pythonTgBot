@@ -11,7 +11,7 @@ from handlers import (
     handle_task_title,
     handle_task_description,
     tasks_list,
-    view_task
+    view_task, delete_task, mark_task_as_completed
 )
 from services.user_states_service import UserStatesService
 
@@ -35,14 +35,14 @@ app.add_handler(
 app.add_handler(
     MessageHandler(
         create_task,
-        filters.command('create_task')
+        filters.text & filters.regex("^Create Task$")
     )
 )
 
 app.add_handler(
     MessageHandler(
         tasks_list,
-        filters.command('tasks_list')
+        filters.text & filters.regex("^View Tasks$")
     )
 )
 
@@ -51,6 +51,20 @@ app.add_handler(
     CallbackQueryHandler(
         view_task,
         filters.regex(r'^view_task_\d+')
+    )
+)
+
+app.add_handler(
+    CallbackQueryHandler(
+        delete_task,
+        filters.regex(r'^delete_task_\d+')
+    )
+)
+
+app.add_handler(
+    CallbackQueryHandler(
+        mark_task_as_completed,
+        filters.regex(r'^complete_task_\d+')
     )
 )
 
