@@ -1,13 +1,25 @@
 from uuid import UUID
 
 from pyrogram import Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup, \
+    KeyboardButton
 
 from fsm import RegisterFSM, TaskCreationFSM
 from models import Tasks
 from services.task_service import TaskService
 from services.user_service import UserService
 from services.user_states_service import UserStatesService
+
+
+def main_menu(message: Message):
+    main_menu_markup = ReplyKeyboardMarkup(
+        [
+            [KeyboardButton("Create Task")],
+            [KeyboardButton("View Tasks")]
+        ],
+        resize_keyboard=True
+    )
+    message.reply_text("Main Menu", reply_markup=main_menu_markup)
 
 
 def start_command(
@@ -29,6 +41,7 @@ def start_command(
             message.reply_text("Continue registration!")
     else:
         message.reply_text("You're registered!")
+        main_menu(message)
 
 
 def enter_name(
@@ -149,7 +162,6 @@ def view_task(
             [
                 [InlineKeyboardButton("Mark as Completed", callback_data=f"complete_task_{task_id}")],
                 [InlineKeyboardButton("Delete Task", callback_data=f"delete_task_{task_id}")],
-                [InlineKeyboardButton("Back to Task List", callback_data="tasks_list")]
             ]
         )
         callback_query.message.edit_text(message_text, reply_markup=commands_markup)
@@ -159,13 +171,31 @@ def view_task(
 
 def delete_task(
     client: Client,
-    message: Message
+    callback_query: CallbackQuery
 ):
-    ...
+    task_id: str = callback_query.data.split("_")[2]
+    try:
+        task_id: UUID = UUID(task_id)
+        task_deleted: bool = TaskService.delete_task_by_id(task_id)
+        if task_deleted:
+            callback_query.answer("Task has been deleted successfully!")
+        else:
+            callback_query.answer("Failed to delete the task.")
+    except ValueError:
+        callback_query.answer("Task not found!", show_alert=True)
 
 
 def mark_task_as_completed(
     client: Client,
-    message: Message
+    callback_query: CallbackQuery
 ):
-    ...
+    task_id: str = callback_query.data.split("_")[2]
+    try:
+        task_id: UUID = UUID(task_id)
+        task_marked_completed: bool = TaskService.mark_task_as_completed(task_id)
+        if task_marked_completed:
+            callback_query.answer("Task has been marked as completed!")
+        else:
+            callback_query.answer("Failed to mark the task as completed.")
+    except ValueError:
+        callback_query.answer("Task not found!", show_alert=True)
